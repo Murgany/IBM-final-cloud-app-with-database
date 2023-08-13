@@ -1,0 +1,59 @@
+{% extends 'onlinecourse/base.html' %}
+
+{% block nav %}
+{% include 'onlinecourse/base.html' %}
+{% endblock nav %}
+
+{% block content %}
+<!-- Page content -->
+<div class="container my-5">
+    <h2>{{ course.name }}</h2>
+    <div class="card-columns-vertical">
+        <!-- Display all lessons in course-->
+        {% for lesson in course.lesson_set.all %}
+        <div class="card mt-1">
+            <div class="card-header"><h5>Lesson: {{lesson.title}}</h5></div>
+            <div class="card-body">{{lesson.content}}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <div id="exam" class="row mt-5">
+        <div class="col">
+            <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#demo">Show Exam</button>
+            <div id="demo" class="collapse">
+                <!-- A choice submission form -->
+                <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                    <!-- for each question in the course, display question ...-->
+                    {% for question in course.question_set.all %}
+                    <div class="card mt-1">
+                        <div class="card-header"><h5>{{ question.question_text}}</h5></div>
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <!-- for each choice/answer in the question, display choice/answer ...-->
+                            {% for choice in question.choice_set.all %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="choice_{{choice.id}}"
+                                           class="form-check-input" id="{{choice.id}}"
+                                           value="{{choice.id}}">{{ choice.choice_content }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <input class="btn btn-success mt-2" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-danger">Please
+        <a href="{% url 'onlinecourse:login' %}" class="btn btn-link">Login</a>
+        to access exam!
+    </p>
+    {% endif %}
+</div>
+{% endblock content %}

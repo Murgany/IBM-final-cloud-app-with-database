@@ -1,0 +1,45 @@
+{% extends 'onlinecourse/base.html' %}
+
+{% block nav %}
+{% include 'onlinecourse/base.html' %}
+{% endblock nav %}
+
+{% block content %}
+<!-- Page content -->
+{% if course_list %}
+<div class="container">
+    <div class="card-deck justify-content-center my-5">
+        <!-- List of available courses -->
+        {% for course in course_list %}
+            <div class="card" style="max-width: 18rem;">
+                <img class="card-img p-3" src="{{MEDIA_URL}}/{{ course.image }}" width="240px" height="240px"
+                     alt="Course image">
+                <div class="card-body bg-light">
+                    <a href="{% url 'onlinecourse:course_details' course.id %}"
+                       class="card-title">
+                        {{ course.name }}
+                    </a>-
+                    <span class="text-success">{{ course.total_enrollment}} enrolled</span>
+                    <p class="card-text">{{ course.description}}</p>
+                    <form action="{% url 'onlinecourse:enroll' course.id %}" method="post">
+                        {% csrf_token %}
+
+                        {% if user.is_authenticated %}
+                            <input class="btn btn-primary" type="submit"
+                               value="{% if course.is_enrolled %} Enter {% else %} Enroll {% endif %}">
+                        {% else %}
+                            <p>Please login to enroll or resume courses!</p>
+                            <a href="{% url 'onlinecourse:login' %}" class="btn btn-primary">Login</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<!-- Display this if no courses are available -->
+<p>No courses are available.</p>
+{% endif %}
+
+{% endblock content %}
