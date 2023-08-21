@@ -9,36 +9,44 @@ from django.contrib.auth import login, logout, authenticate
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-# Create your views here.
 
 
+""" Registration view """
 def registration_request(request):
+    """ Represents a user registration operation """
     context = {}
     if request.method == 'GET':
         return render(request, 'onlinecourse/user_registration_bootstrap.html', context)
     elif request.method == 'POST':
-        # Check if user exists
         username = request.POST['username']
         password = request.POST['psw']
         first_name = request.POST['firstname']
         last_name = request.POST['lastname']
         user_exist = False
+        
+        # check if user exists
         try:
             User.objects.get(username=username)
             user_exist = True
         except:
             logger.error("New user")
+            
+        #check if user doesn't already exist,create a new user
         if not user_exist:
-            user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name,
-                                            password=password)
+            user = User.objects.create_user(username=username, 
+                                            first_name=first_name, 
+                                            last_name=last_name, 
+                                            password=password
+                                            )
             login(request, user)
             return redirect("onlinecourse:index")
-        else:
+        else: # if user exists
             context['message'] = "User already exists."
             return render(request, 'onlinecourse/user_registration_bootstrap.html', context)
 
-
+""" Login view """
 def login_request(request):
+    """ Represents a login operation """
     context = {}
     if request.method == "POST":
         username = request.POST['username']
@@ -54,7 +62,9 @@ def login_request(request):
         return render(request, 'onlinecourse/user_login_bootstrap.html', context)
 
 
+""" Logout """
 def logout_request(request):
+""" Represents a logout operation """
     logout(request)
     return redirect('onlinecourse:index')
 
@@ -69,8 +79,9 @@ def check_if_enrolled(user, course):
     return is_enrolled
 
 
-# CourseListView
+""" Course List View """
 class CourseListView(generic.ListView):
+    """ Lists all available courses"""
     template_name = 'onlinecourse/course_list_bootstrap.html'
     context_object_name = 'course_list'
 
@@ -83,11 +94,14 @@ class CourseListView(generic.ListView):
         return courses
 
 
+"""Course Details View """
 class CourseDetailView(generic.DetailView):
+    """ Displays details of a particular course """
     model = Course
     template_name = 'onlinecourse/course_detail_bootstrap.html'
 
 
+""" Enrollment view """
 def enroll(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     user = request.user
@@ -102,7 +116,7 @@ def enroll(request, course_id):
     return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))
 
 
-# Submit choices view
+""" Submit choices view """
 def submit(request, course_id):
     # Get the courses by id
     course = get_object_or_404(Course, pk=course_id)
@@ -122,7 +136,6 @@ def submit(request, course_id):
     return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course.id, submission.id)))
 
 
-# <HINT> A example method to collect the selected choices from the exam form from the request object
 def extract_answers(request):
     submitted_choices = []
     for key in request.POST:
@@ -133,7 +146,7 @@ def extract_answers(request):
     return submitted_choices
 
 
-# Exam results view
+""" Exam results view """
 def show_exam_result(request, course_id, submission_id):
     # Get course and submission based on ids
     course = get_object_or_404(Course, pk=course_id)
@@ -165,4 +178,3 @@ def show_exam_result(request, course_id, submission_id):
                }
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
-
